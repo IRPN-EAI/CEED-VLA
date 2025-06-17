@@ -43,6 +43,26 @@
   <script src="static/js/bulma-carousel.min.js"></script>
   <script src="static/js/bulma-slider.min.js"></script>
   <script src="static/js/index.js"></script>
+  <!-- <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script> -->
+    <!-- Enable MathJax for LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        packages: ['base', 'ams']
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
@@ -175,22 +195,26 @@
 </section>
 <!-- End paper abstract -->
 
-<!-- Model Architecture Section -->
+
 <section class="section">
   <div class="container is-max-desktop">
-    <h2 class="title is-3 has-text-centered">Overeview</h2>
+    <h2 class="title is-3 has-text-centered">Introduce</h2>
 
-    <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="box" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <a href="paper_image/small_teaser.png" target="_blank">
         <img src="paper_image/small_teaser.png" alt="CEED-VLA Model Architecture"
-             style="max-width: 100%; height: auto; border-radius: 8px;">
+             style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;">
       </a>
-      <p class="subtitle is-5 mt-3">The Performance of CEED-VLA .</p>
+
+      <ul style="font-size: 0.95rem; margin-top: 1rem; padding-left: 1.2em;">
+        <li>(1) We propose <strong>CEED-VLA</strong>, a universal acceleration method that achieves significant inference speedup while maintaining manipulation performance.</li>
+        <li>(2) We introduce a <strong>consistency distillation</strong> process and a <strong>mixed-label supervision</strong> in the autoregressive loss to retain high-quality actions.</li>
+        <li>(3) We identify <strong>inefficient iteration</strong> as the bottleneck of Jacobi decoding and propose an <strong>early-exit decoding</strong> strategy, leading to <span style="font-family: 'Times New Roman', serif;">4.1×</span> speedup and over <span style="font-family: 'Times New Roman', serif;">4.3×</span> decoding frequency.</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- Model Architecture Section -->
 <section class="section">
   <div class="container is-max-desktop">
     <h2 class="title is-3 has-text-centered">Method</h2>
@@ -202,20 +226,262 @@
       </a>
       <p class="subtitle is-5 mt-3">The architecture of CEED-VLA with consistency distillation and early-exit decoding.</p>
     </div>
+
+    <!-- Jacobi Trajectory Collection Section -->
+    <h3 class="title is-4 mt-6">Jacobi Trajectory Collection</h3>
+    <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <a href="paper_image/alogorithm2.png"" target="_blank">
+        <img src="paper_image/alogorithm2.png" alt="CEED-VLA Model Architecture"
+             style="max-width: 80%; height: auto; border-radius: 8px;">
+      </a>
+      <p class="subtitle is-5 mt-3">The Jacobi trajectory collection process.</p> 
+    </div>
+    <p style="font-size: 0.95rem; margin-top: 1rem;">
+      For the target VLA \( P \), we let \( Q_\theta(\cdot \mid \mathbf{x}) \) denote the CEED-VLA model 
+      with parameters \( \theta \) initialized from \( P \). To capture the inherent consistency within Jacobi trajectories, 
+      we first collect them by prompting \( P \) to predict actions using Jacobi decoding on the robot dataset \( \mathcal{C} \).
+    </p>
+
+    <!-- Loss Design Explanation -->
+    <div class="content mt-6" style="font-size: 0.95rem;">
+      <h3 class="title is-4">Consistency Training</h3>
+      <p style="margin-top: -0.5rem; font-size: 0.95rem;">
+        The consistency training procedure optimizes two objectives: 
+        <em>(i)</em> guiding the model to predict multiple correct tokens simultaneously, and 
+        <em>(ii)</em> constraining CEED-VLA from drifting away from the target VLA distribution to preserve manipulation skills.
+      </p>
+      <h4><strong>1. Consistency Loss</strong></h4>
+      <p>
+        We design a consistency loss to ensure that any intermediate point \( \mathcal{Y} \) on the Jacobi trajectory \( \mathcal{J} \) is mapped to the fixed point \( \mathcal{Y}^* \). This encourages the model to converge efficiently.
+      </p>
+      <p>
+        \[
+        \mathcal{L}_{\text{C}} = \mathbb{E}_{(\mathbf{x}, \mathcal{J}) \sim \mathcal{D}, \mathcal{Y} \sim \mathcal{J}} \left[ \sum_{i=1}^n \text{KL}\left( Q_{\theta^{-}}(\cdot|\mathcal{Y}_i^*, \mathbf{x}) \,\|\, Q_{\theta}(\cdot|\mathcal{Y}_i, \mathbf{x}) \right) \right]
+        \]
+      </p>
+      <p>
+        where \( \theta^{-} = \text{stopgrad}(\theta) \) and KL denotes the forward KL divergence.
+      </p>
+
+      <h4 class="mt-5"><strong>2. Mixed-label AR Supervision</strong></h4>
+      <p>
+        To maintain autoregressive behavior, we retain the AR loss from the teacher model:
+      </p>
+      
+      <p>
+        $$
+        \mathcal{L}_{\text{AR}} = \mathbb{E}_{(\mathbf{x}, \mathcal{Y}^{*}) \sim \mathcal{D}} \left[ -\sum_{i=1}^N \log Q_{\theta}\left( \mathcal{Y}^{*}_{i} \mid \mathcal{Y}^{*}_{\lt i}, \mathbf{x} \right) \right]
+        $$
+        
+      </p>
+      
+      <p>
+        For outliers with large deviation (measured by L1 distance), the AR labels are replaced by corresponding ground-truth values.
+      </p>
+
+      <h4 class="mt-5"><strong>3. Total Loss</strong></h4>
+      <p>
+        \[
+        \mathcal{L}(\theta) = \mathcal{L}_{\text{C}} + \omega \cdot \mathcal{L}_{\text{AR}}
+        \]
+      </p>
+      <p>
+        where \( \omega \) is a weighting coefficient balancing consistency and AR supervision.
+      </p>
+    </div>
+
+    <!-- Early-Exit Decoding Section -->
+    <h3 class="title is-4 mt-6">Early-Exit Decoding</h3>
+    <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <a href="paper_image/four decode compare.png"" target="_blank">
+        <img src="paper_image/four decode compare.png" alt="CEED-VLA Model Architecture"
+             style="max-width: 80%; height: auto; border-radius: 8px;">
+      </a>
+      <p class="subtitle is-5 mt-3">The comparison of four decoding methods.</p> 
+    </div>
+    <p style="font-size: 0.95rem; margin-top: 1rem;">
+      To address the inefficiency of Jacobi decoding caused by strict convergence requirements, we propose early-exit decoding.
+      Instead of waiting for full convergence,the model exits early at a predefined step and directly outputs the intermediate result. 
+      This strategy leverages the observation that late-stage token updates are often minor and have limited impact on task success. 
+      By relaxing the stopping condition, early-exit decoding significantly improves both the average and minimum inference speeds while preserving manipulation accuracy, enabling high-frequency robotic control with minimal delay.
+      
+    </p>
+
   </div>
 </section>
 
-<section class="hero is-small">
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Experiment</h2>
+
+    <div class="box" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <a href="paper_image/table2.png" target="_blank">
+        <img src="paper_image/table2.png" alt="CEED-VLA Model Architecture"
+             style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;">
+      </a>
+      <p class="subtitle is-5 mt-3 has-text-centered">Main experiment.</p>
+    </div>
+    <h3 class="title is-4 mt-6">Evaluation on CALVIN ABC->D Benchmark</h3>
+    <div class="columns is-multiline is-mobile is-centered mt-4">
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/video0.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 1: rotate_blue_block_right</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/video1.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 2: move_slider_right</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/video2.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 3: lift_red_block_slider</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/video3.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 4:<br>place_in_slider</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/video4.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 5: turn_off_lightbulb</p>
+      </div>
+    </div>
+    <!-- <div class="box mt-6" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+      <video autoplay muted loop playsinline style="max-width: 50%; border-radius: 8px;">
+        <source src="paper_video/all_x264.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <p class="subtitle is-5 mt-3">Overview of all tasks performed sequentially.</p>
+    </div> -->
+
+    <div class="columns is-centered mt-5">
+      <div class="column is-half has-text-centered">
+        <img src="paper_image/table1.png" alt="Image 1" style="width: 100%; border-radius: 8px;">
+        <p class="mt-2">Table 1: Description</p>
+      </div>
+      <div class="column is-half has-text-centered">
+        <img src="paper_image/table3.png" alt="Image 2" style="width: 100%; border-radius: 8px;">
+        <p class="mt-2">Table 3: Description</p>
+      </div>
+    </div>
+    
+    <div class="columns is-centered mt-3">
+      <div class="column is-half has-text-centered">
+        <img src="paper_image/table5.png" alt="Image 3" style="width: 100%; border-radius: 8px;">
+        <p class="mt-2">Table 5: Description</p>
+      </div>
+      <div class="column is-half has-text-centered">
+        <img src="paper_image/table6.png" alt="Image 4" style="width: 100%; border-radius: 8px;">
+        <p class="mt-2">Table 6: Description</p>
+      </div>
+    </div>
+
+
+
+    <h3 class="title is-4 mt-6">Evaluation on LIBERO LONG Benchmark</h3>
+    <div class="columns is-multiline is-mobile is-centered mt-4">
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/pick up the book and place it in the back compartment of the caddy.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 1: pick up the book and place it in the back compartment of the caddy</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put both moka pots on the stove.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 2: put both moka pots on the stove</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put both the alphabet soup and the cream cheese box in the basket.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 3: put both the alphabet soup and the cream cheese box in the basket</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put both the alphabet soup and the tomato sauce in the basket.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 4: put both the alphabet soup and the tomato sauce in the basket</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put both the cream cheese box and the butter in the basket.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 5: put both the cream cheese box and the butter in the basket</p>
+      </div>
+    </div>
+
+    <div class="columns is-multiline is-mobile is-centered mt-4">
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put the black bowl in the bottom drawer of the cabinet and close it.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 6: put the black bowl in the bottom drawer of the cabinet and close it</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put the white mug on the left plate and put the yellow and white mug on the right plate.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 7: put the white mug on the left plate and put the yellow and white mug on the right plate</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put the white mug on the plate and put the chocolate pudding to the right of the plate.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 8: put the white mug on the plate and put the chocolate pudding to the right of the plate</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/put the yellow and white mug in the microwave and close it.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 9: put the white mug on the plate and put the chocolate pudding to the right of the plate</p>
+      </div>
+      <div class="column is-one-fifth has-text-centered">
+        <video autoplay muted loop playsinline width="100%">
+          <source src="paper_video/turn_on_the_stove_and_put_the_moka_pot_on_it.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p class="mt-2">Task 10: turn on the stove and put the moka pot on it</p>
+      </div>
+    </div>
+    
+
+  </div>
+</section>
+
+
+
+
+
+
+<!-- <section class="hero is-small">
   <div class="hero-body">
     <h2 class="title is-3 has-text-centered">Experiment</h2>
     <div class="container">
       <div id="results-carousel" class="carousel results-carousel">
-
-        <!-- <div class="item">
-          <img src="paper_image/table1.png" alt="First table"
-               style="height: 400px; width: auto; display: block; margin: 0 auto;">
-          <h2 class="subtitle has-text-centered">First image description.</h2>
-        </div> -->
 
         <div class="item">
           <img src="paper_image/table2.png" alt="Second table"
@@ -236,8 +502,25 @@
         </div>
 
       </div>
-    </div>
-  </div>
+      <h3 class="title is-4 mt-6">Early-Exit Decoding</h3>
+      <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <a href="paper_image/four decode compare.png"" target="_blank">
+          <img src="paper_image/four decode compare.png" alt="CEED-VLA Model Architecture"
+               style="max-width: 80%; height: auto; border-radius: 8px;">
+        </a>
+        <p class="subtitle is-5 mt-3">The comparison of four decoding methods.</p> 
+      </div>
+      <p style="font-size: 0.95rem; margin-top: 1rem;">
+        To address the inefficiency of Jacobi decoding caused by strict convergence requirements, we propose early-exit decoding.
+        Instead of waiting for full convergence,the model exits early at a predefined step and directly outputs the intermediate result. 
+        This strategy leverages the observation that late-stage token updates are often minor and have limited impact on task success. 
+        By relaxing the stopping condition, early-exit decoding significantly improves both the average and minimum inference speeds while preserving manipulation accuracy, enabling high-frequency robotic control with minimal delay.
+        
+      </p>
+    </div> -->
+
+    
+
 </section>
 
 
