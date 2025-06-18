@@ -171,6 +171,34 @@
   </div>
 </section> -->
 <!-- End teaser video -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="box mt-6" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+      <video controls autoplay muted loop playsinline style="max-width: 100%; border-radius: 8px;">
+        <source src="paper_video/real_x264.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <!-- <p class="subtitle is-5 mt-3">The real world experiment.</p> -->
+      <p class="subtitle is-6 mt-3" style="text-align: left;">
+        <b>Task:</b> Fold the towel<br><br>
+        The top two videos demonstrate the performance of the <b>LLaVA-VLA</b> model in a real-world setting. The robotic arm operates at a relatively low frequency and struggles with dexterous manipulation tasks such as towel folding, often failing to grasp the towel properly or only grabbing one edge, which leads to task failure.<br><br>
+        The bottom two videos show the experimental results of our proposed <b>CEED-VLA</b> model. Thanks to its faster inference speed, the robotic arm operates more smoothly and successfully completes the dexterous manipulation tasks.
+      </p>
+    </div>
+  </div>
+</section>
+<!-- 
+<div class="box mt-6" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+  <video controls autoplay muted loop playsinline style="max-width: 100%; border-radius: 8px;">
+    <source src="paper_video/real_x264.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <p class="subtitle is-6 mt-3" style="text-align: left;">
+    <b>Task:</b> Fold the towel<br><br>
+    The top two videos demonstrate the performance of the <b>LLaVA-VLA</b> model in a real-world setting. The robotic arm operates at a relatively low frequency and struggles with dexterous manipulation tasks such as towel folding, often failing to grasp the towel properly or only grabbing one edge, which leads to task failure.<br><br>
+    The bottom two videos show the experimental results of our proposed <b>CEED-VLA</b> model. Thanks to its faster inference speed, the robotic arm operates more smoothly and successfully completes the dexterous manipulation tasks.
+  </p>
+</div> -->
 
 <!-- Paper abstract -->
 <section class="section hero is-light">
@@ -314,12 +342,41 @@
   <div class="container is-max-desktop">
     <h2 class="title is-3 has-text-centered">Experiment</h2>
 
+    <h3 class="title is-4 mt-6">Evaluation on Real World </h3>
+
+
+    <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <a href="paper_image/real_setup.png" target="_blank">
+        <img src="paper_image/real_setup.png" alt="CEED-VLA Model Architecture"
+             style="max-width: 100%; height: auto; border-radius: 8px;">
+      </a>
+      <p class="subtitle is-5 mt-3">The real world setup.</p>
+    </div>
+
+    <div class="box mt-6" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+      <video controls autoplay muted loop playsinline style="max-width: 100%; border-radius: 8px;">
+        <source src="paper_video/color_generation_x264.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <!-- <p class="subtitle is-5 mt-3">The real world experiment.</p> -->
+      <p class="subtitle is-5 mt-3">Visual generalization. (Fold the towel with unseen color)</p>
+    </div>
+
+    <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <a href="paper_image/table7.png"" target="_blank">
+        <img src="paper_image/table7.png" alt="CEED-VLA Model Architecture"
+             style="max-width: 80%; height: auto; border-radius: 8px;">
+      </a>
+      <p class="subtitle is-5 mt-3">The real world results.</p> 
+    </div>
+    
+
     <div class="box" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <a href="paper_image/table2.png" target="_blank">
         <img src="paper_image/table2.png" alt="CEED-VLA Model Architecture"
              style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;">
       </a>
-      <p class="subtitle is-5 mt-3 has-text-centered">Main experiment.</p>
+      <p class="subtitle is-5 mt-3 has-text-centered">Main experiment in simulation.</p>
     </div>
     <h3 class="title is-4 mt-6">Evaluation on CALVIN ABC->D Benchmark</h3>
     <div class="columns is-multiline is-mobile is-centered mt-4">
@@ -485,18 +542,7 @@
       </a>
       <p class="subtitle is-5 mt-3">The real world setup.</p>
     </div>
-    <div class="box mt-6" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-      <video controls autoplay muted loop playsinline style="max-width: 100%; border-radius: 8px;">
-        <source src="paper_video/real_x264.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-      <!-- <p class="subtitle is-5 mt-3">The real world experiment.</p> -->
-      <p class="subtitle is-6 mt-3" style="text-align: left;">
-        <b>Task:</b> Fold the towel<br><br>
-        The top two videos demonstrate the performance of the <b>LLaVA-VLA</b> model in a real-world setting. The robotic arm operates at a relatively low frequency and struggles with dexterous manipulation tasks such as towel folding, often failing to grasp the towel properly or only grabbing one edge, which leads to task failure.<br><br>
-        The bottom two videos show the experimental results of our proposed <b>CEED-VLA</b> model. Thanks to its faster inference speed, the robotic arm operates more smoothly and successfully completes the dexterous manipulation tasks.
-      </p>
-    </div>
+
     <div class="box mt-6" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
       <video controls autoplay muted loop playsinline style="max-width: 100%; border-radius: 8px;">
         <source src="paper_video/color_generation_x264.mp4" type="video/mp4">
@@ -505,8 +551,6 @@
       <!-- <p class="subtitle is-5 mt-3">The real world experiment.</p> -->
       <p class="subtitle is-5 mt-3">Visual generalization. (Fold the towel with unseen color)</p>
     </div>
-
-
 
     <div class="box has-text-centered" style="box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
       <a href="paper_image/table7.png"" target="_blank">
